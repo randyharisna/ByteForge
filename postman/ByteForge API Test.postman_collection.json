@@ -1,0 +1,514 @@
+{
+	"info": {
+		"_postman_id": "6f4fb82a-5afe-4ab0-bf91-758055bbbc17",
+		"name": "ByteForge API Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31386225"
+	},
+	"item": [
+		{
+			"name": "Courses",
+			"item": [
+				{
+					"name": "Adding Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('response status code should have 200 value', () => {\r",
+									"   pm.response.to.have.status(201);\r",
+									"}); \r",
+									"\r",
+									"pm.test('response Content-Type header should have application/json value', () => {\r",
+									"  pm.expect(pm.response.headers.get('Content-Type')).to.equals('application/json; charset=utf-8');\r",
+									"}); \r",
+									"\r",
+									"pm.test('response body should an object', () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    pm.expect(responseJson).to.be.an('object');\r",
+									"});\r",
+									"\r",
+									"pm.test('response body should have correct property and value', () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    pm.expect(responseJson).to.ownProperty('status');\r",
+									"    pm.expect(responseJson.status).to.equals('success');\r",
+									"    pm.expect(responseJson).to.ownProperty('message');\r",
+									"    pm.expect(responseJson).to.ownProperty('data');\r",
+									"    pm.expect(responseJson.data).to.be.an('object');\r",
+									"});\r",
+									"\r",
+									"pm.test('response body data should have noteId property and not equal to empty', () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    const { data } = responseJson;\r",
+									" \r",
+									"    pm.expect(data).to.ownProperty('courseId');\r",
+									"    pm.expect(data.courseId).to.not.equals('');\r",
+									" \r",
+									"    pm.environment.set('courseId', data.courseId);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Course A\",\r\n    \"description\": \"Deskripsi course A\",\r\n    \"difficulty\": \"easy\",\r\n    \"tier\": 0\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:{{port}}/api/courses",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"api",
+								"courses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Adding Course With Bad Payload",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let badCoursePayloads = pm.environment.get('badCoursePayloads');  // ini akan bertipe Array\r",
+									" \r",
+									"if (!badCoursePayloads || badCoursePayloads.length === 0) {\r",
+									"    // inisialisasi dengan sejumlah course yang tidak sesuai\r",
+									"    badCoursePayloads = [\r",
+									"        { description: \"test\", difficulty: \"Isi dari catatan A\", tier: true },\r",
+									"        { title: 1, description: 0, difficulty: \"Isi dari catatan A\" },\r",
+									"        { title: \"Catatan A\", difficulty: \"Isi dari catatan A\", tier: \"test\" },\r",
+									"        { title: \"Catatan A\", description: [1, \"2\"], difficulty: \"Isi dari catatan A\" },\r",
+									"        { title: \"Catatan A\", description: false, tier: 4 },\r",
+									"        { title: \"Catatan A\", description: [\"Android\", \"Web\"], difficulty: true }\r",
+									"    ]\r",
+									"}\r",
+									" \r",
+									"let currentBadCoursePayload = badCoursePayloads.shift();  // hapus index 0, geser sisanya\r",
+									"pm.environment.set('currentBadCoursePayload', JSON.stringify(currentBadCoursePayload));\r",
+									"pm.environment.set('badCoursePayloads', badCoursePayloads);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('response status code should have 400 value', () => {\r",
+									"    pm.response.to.have.status(400);\r",
+									"});\r",
+									" \r",
+									"pm.test('response Content-Type header should have application/json; charset=utf-8 value', () => {\r",
+									"  pm.expect(pm.response.headers.get('Content-Type')).to.equals('application/json; charset=utf-8');\r",
+									"}); \r",
+									" \r",
+									"pm.test('response body should be an object', () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    pm.expect(responseJson).to.be.an('object');\r",
+									"});\r",
+									" \r",
+									"pm.test('response body object should have correct property and value', () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    pm.expect(responseJson).to.haveOwnProperty('status');\r",
+									"    pm.expect(responseJson.status).to.equals('fail');\r",
+									"    pm.expect(responseJson).to.haveOwnProperty('message');\r",
+									"    pm.expect(responseJson.message).to.be.ok;\r",
+									"})\r",
+									"\r",
+									"const repeatRequestUntilDatasetEmpty = () => {\r",
+									"    const badcoursePayloads = pm.environment.get('badcoursePayloads');\r",
+									"    if(badcoursePayloads && badcoursePayloads.length > 0) {\r",
+									"        postman.setNextRequest('Adding courses with Bad course Payload');\r",
+									"    }\r",
+									"}\r",
+									"repeatRequestUntilDatasetEmpty();"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{currentBadCoursePayload}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:{{port}}/api/courses",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"api",
+								"courses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting All Courses",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('response status code should have 200 value', () => {\r",
+									"   pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test('response Content-Type header should have application/json value', () => {\r",
+									"   pm.expect(pm.response.headers.get('Content-Type')).to.equals('application/json; charset=utf-8');\r",
+									"});\r",
+									"\r",
+									"pm.test('response body should an object', () => {\r",
+									"   const responseJson = pm.response.json();\r",
+									"   pm.expect(responseJson).to.be.an('object');\r",
+									"}); \r",
+									"\r",
+									"pm.test('response body should have the correct property and value', () => {\r",
+									"  const responseJson = pm.response.json();\r",
+									"   pm.expect(responseJson).to.have.ownProperty('status');\r",
+									"   pm.expect(responseJson.status).to.equals('success');\r",
+									"   pm.expect(responseJson).to.have.ownProperty('data');\r",
+									"   pm.expect(responseJson.data).to.be.an('object');\r",
+									"});\r",
+									"\r",
+									"pm.test('response body data should have a courses array and contain at least 1 item', () => {\r",
+									"   const responseJson = pm.response.json();\r",
+									"   const { data } = responseJson;\r",
+									" \r",
+									"   pm.expect(data).to.have.ownProperty('courses');\r",
+									"   pm.expect(data.courses).to.be.an('array');\r",
+									"   pm.expect(data.courses).lengthOf.at.least(1);\r",
+									"}); "
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:{{port}}/api/courses",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"api",
+								"courses"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Getting Specified Course",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:{{port}}/api/courses/{{courseId}}",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"api",
+								"courses",
+								"{{courseId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('response status code should have 200 value', () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test('response Content-Type header should have application/json value', () => {\r",
+									"   pm.expect(pm.response.headers.get('Content-Type')).to.equals(\"application/json; charset=utf-8\");\r",
+									"})\r",
+									"\r",
+									"pm.test('response body should be an object', () => {\r",
+									"   const responseJson = pm.response.json();\r",
+									"   pm.expect(responseJson).to.be.an('object');\r",
+									"});\r",
+									"\r",
+									"pm.test('response body should have correct property and value', () => {\r",
+									"   const responseJson = pm.response.json();\r",
+									" \r",
+									"   pm.expect(responseJson).to.have.ownProperty('status');\r",
+									"   pm.expect(responseJson.status).to.equals('success');\r",
+									"   pm.expect(responseJson).to.have.ownProperty('message');\r",
+									"});\r",
+									"\r",
+									"const getUpdatedBookRequest = {\r",
+									"    url: `http://localhost:5000/api/courses/${pm.environment.get('courseId')}`,\r",
+									"    method: 'GET',\r",
+									"    header: {\r",
+									"        'Content-Type': 'application/json',\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"pm.test('when request the updated course', () => {\r",
+									"    pm.sendRequest(getUpdatedBookRequest, (error, response) => {\r",
+									"        if(!error) {\r",
+									"            pm.test('then the updated course should contain the latest data', () => {\r",
+									"                const responseJson = response.json();\r",
+									"                const { data: { course } } = responseJson;\r",
+									" \r",
+									"                const expectedTitle = 'Course A revised';\r",
+									"                const expectedDesc = 'Deskripsi course A revised';\r",
+									"                const expectedDiff = 'hard';\r",
+									"                const expectedTier = 1;\r",
+									" \r",
+									"                pm.expect(course.title).to.equals(expectedTitle);\r",
+									"                pm.expect(course.description).to.equals(expectedDesc);\r",
+									"                pm.expect(course.difficulty).to.equals(expectedDiff);\r",
+									"                pm.expect(course.tier).to.equal(expectedTier);\r",
+									"            });\r",
+									"        }\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"title\": \"Course A revised\",\r\n    \"description\": \"Deskripsi course A revised\",\r\n    \"difficulty\": \"hard\",\r\n    \"tier\": 1\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:{{port}}/api/courses/{{courseId}}",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"api",
+								"courses",
+								"{{courseId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Course With Bad Payload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('response status code should have 400 value', () => {\r",
+									"    pm.response.to.have.status(400);\r",
+									"});\r",
+									" \r",
+									"pm.test('response Content-Type header should have application/json; charset=utf-8 value', () => {\r",
+									"  pm.expect(pm.response.headers.get('Content-Type')).to.equals('application/json; charset=utf-8');\r",
+									"}); \r",
+									" \r",
+									"pm.test('response body should be an object', () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    pm.expect(responseJson).to.be.an('object');\r",
+									"});\r",
+									" \r",
+									"pm.test('response body object should have correct property and value', () => {\r",
+									"    const responseJson = pm.response.json();\r",
+									"    pm.expect(responseJson).to.haveOwnProperty('status');\r",
+									"    pm.expect(responseJson.status).to.equals('fail');\r",
+									"    pm.expect(responseJson).to.haveOwnProperty('message');\r",
+									"    pm.expect(responseJson.message).to.be.ok;\r",
+									"});\r",
+									" \r",
+									"const repeatRequestUntilDatasetEmpty = () => {\r",
+									"    const badCoursePayloads = pm.environment.get('badCoursePayloads');\r",
+									" \r",
+									"    if(badCoursePayloads && badCoursePayloads.length > 0) {\r",
+									"        postman.setNextRequest('Update Course with Bad Course Payload');\r",
+									"    }\r",
+									"}\r",
+									" \r",
+									"repeatRequestUntilDatasetEmpty();"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let badCoursePayloads = pm.environment.get('badCoursePayloads');  // ini akan bertipe Array\r",
+									" \r",
+									"if (!badCoursePayloads || badCoursePayloads.length === 0) {\r",
+									"    // inisialisasi dengan sejumlah course yang tidak sesuai\r",
+									"    badCoursePayloads = [\r",
+									"        { description: \"test\", difficulty: \"Isi dari catatan A\", tier: true },\r",
+									"        { title: 1, description: 0, difficulty: \"Isi dari catatan A\" },\r",
+									"        { title: \"Catatan A\", difficulty: \"Isi dari catatan A\", tier: \"test\" },\r",
+									"        { title: \"Catatan A\", description: [1, \"2\"], difficulty: \"Isi dari catatan A\" },\r",
+									"        { title: \"Catatan A\", description: false, tier: 4 },\r",
+									"        { title: \"Catatan A\", description: [\"Android\", \"Web\"], difficulty: true }\r",
+									"    ]\r",
+									"}\r",
+									" \r",
+									"const currentBadcoursePayload = badCoursePayloads.shift();  // hapus index 0, geser sisanya\r",
+									"pm.environment.set('currentBadcoursePayload', JSON.stringify(currentBadcoursePayload));\r",
+									"pm.environment.set('badCoursePayloads', badCoursePayloads);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{{currentBadCoursePayload}}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:{{port}}/api/courses/{{courseId}}",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"api",
+								"courses",
+								"{{courseId}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Course",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('response status code should have 200 value', () => {\r",
+									"   pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"pm.test('response Content-Type header should have application/json value', () => {\r",
+									"   pm.expect(pm.response.headers.get('Content-Type')).to.equals('application/json; charset=utf-8')\r",
+									"}); \r",
+									"\r",
+									"pm.test('response body should be an object', () => {\r",
+									"   const responseJson = pm.response.json();\r",
+									"   pm.expect(responseJson).to.be.an('object');\r",
+									"});\r",
+									"\r",
+									"pm.test('response body should have correct property and value', () => {\r",
+									"   const responseJson = pm.response.json();\r",
+									" \r",
+									"   pm.expect(responseJson).to.have.ownProperty('status');\r",
+									"   pm.expect(responseJson.status).to.equals('success');\r",
+									"   pm.expect(responseJson).to.have.ownProperty('message');\r",
+									"}); \r",
+									"\r",
+									"const getDeletedBookRequest = {\r",
+									"    url: `http://localhost:5000/api/courses/${pm.environment.get('courseId')}`,\r",
+									"    method: 'GET',\r",
+									"    header: {\r",
+									"        'Content-Type': 'application/json',\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"pm.test('when request the updated course', () => {\r",
+									"    const courseId = pm.environment.get('courseId');\r",
+									"    pm.sendRequest(getDeletedBookRequest, (error, response) => {\r",
+									"        if(!error) {\r",
+									"            pm.test('the deleted course should be not found', () => {\r",
+									"                pm.expect(response.code).to.equals(404);\r",
+									"                const responseJson = response.json();\r",
+									"                pm.expect(responseJson.status).to.equals('fail');\r",
+									"            });\r",
+									"        }\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:{{port}}/api/courses/{{courseId}}",
+							"host": [
+								"localhost"
+							],
+							"port": "{{port}}",
+							"path": [
+								"api",
+								"courses",
+								"{{courseId}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

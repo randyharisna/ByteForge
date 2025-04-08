@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model courses {
+  course_id   String   @id @default(cuid())
+  title       String
+  description String
+  difficulty  String
+  tier        Int
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  contents    contents[]
+}
+
+model contents {
+  content_id String   @id @default(cuid())
+  course     courses   @relation(fields: [course_id], references: [course_id])
+  course_id  String
+  title      String
+  order      Int
+
+  subcontents subcontents[]
+}
+
+model subcontents {
+  sub_content_id String   @id @default(cuid())
+  content        contents  @relation(fields: [content_id], references: [content_id])
+  content_id     String
+  title          String
+  body           String
+  type           String  // text, video, quiz, etc
+  order          Int
+  video_url      String?
+}
+
